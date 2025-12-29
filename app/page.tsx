@@ -1,7 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
 
-const FIELD_MAP = [
+/* =====================
+   WEBINAR DETAILS FIELDS
+   ===================== */
+const DETAILS_FIELDS = [
   { label: "City", key: "city" },
   { label: "Zoom Link", key: "1__zoom_link" },
   { label: "Webinar Host", key: "webinar_host" },
@@ -9,23 +12,35 @@ const FIELD_MAP = [
   { label: "Domain Name", key: "domain_name" },
 ];
 
+/* ==========================
+   WEBINAR DATE & TIME FIELDS
+   ========================== */
+const DATETIME_FIELDS = [
+  { label: "Next Webinar Date", key: "2__next_webinar_date" },
+  { label: "Webinar Time", key: "webinar_time" },
+  { label: "Timezone", key: "timezone" },
+];
+
 export default function Page() {
   const [form, setForm] = useState<Record<string, string>>({
-    webinar_date: "2025-12-27",
+    webinar_date: "2025-12-27", // UI date
     webinar_time: "",
     timezone: "",
+
     city: "",
     "1__zoom_link": "",
     webinar_host: "",
     webinar_host_email: "",
     domain_name: "",
+    "2__next_webinar_date": "",
   });
 
   const [customValueIds, setCustomValueIds] = useState<Record<string, string>>(
     {}
   );
 
-  const [loading, setLoading] = useState(false);
+  const [loadingDateTime, setLoadingDateTime] = useState(false);
+  const [loadingDetails, setLoadingDetails] = useState(false);
 
   /* =========================
      GET: FETCH CUSTOM VALUES
@@ -61,46 +76,127 @@ export default function Page() {
   };
 
   /* =========================
-     PUT: UPDATE CUSTOM VALUES
+     SHARED PUT CALL
      ========================= */
-  const saveCustomValues = async (
-    updates: { id: string; value: string, name: string}[]
+  const putCustomValues = async (
+    updates: { id: string; name: string; label: string; value: string }[]
   ) => {
-    setLoading(true);
+    await fetch("/api/ghl/customValues", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ updates }),
+    });
+  };
+
+  /* =========================
+     SAVE: DATE & TIME ONLY
+     ========================= */
+  const handleSaveDateTime = async () => {
+    setLoadingDateTime(true);
     try {
-      await fetch("/api/ghl/customValues", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ updates }),
+      const updates: {
+        id: string;
+        name: string;
+        label: string;
+        value: string;
+      }[] = [];
+
+      if (!form.webinar_date || !form.webinar_time) {
+        alert("Please select date and time");
+        return;
+      }
+
+      // Combine local date + time
+      const localDateTime = new Date(
+        `${form.webinar_date}T${form.webinar_time}:00`
+      );
+
+      // Convert to UTC
+      const utcString = localDateTime.toISOString();
+
+      // Human readable (UTC)
+      const readableUTC = new Date(utcString).toLocaleString("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "UTC",
+        timeZoneName: "short",
       });
 
-      alert("Saved successfully");
+      DATETIME_FIELDS.forEach((field) => {
+        const id = customValueIds[field.key];
+        if (!id) return;
+
+        let value = "";
+
+        if (field.key === "2__next_webinar_date") {
+          // Append UTC date & time
+          value = `${readableUTC}`;
+        } else if (field.key === "webinar_time") {
+          value = form.webinar_time;
+        } else if (field.key === "timezone") {
+          value = form.timezone;
+        }
+
+        updates.push({
+          id,
+          name: field.key,
+          label: field.label,
+          value,
+        });
+      });
+
+      if (updates.length) {
+        await putCustomValues(updates);
+        alert("Webinar date & time saved (UTC)");
+      }
     } catch {
-      alert("Something went wrong");
+      alert("Failed to save webinar date & time");
     } finally {
-      setLoading(false);
+      setLoadingDateTime(false);
     }
   };
 
-  const handleSaveSingle = (fieldKey: string) => {
-    const id = customValueIds[fieldKey];
-    if (!id) return;
+  /* =========================
+     SAVE: DETAILS ONLY
+     ========================= */
+  const handleSaveDetails = async () => {
+    setLoadingDetails(true);
+    try {
+      const updates = DETAILS_FIELDS.map((field) => {
+        const id = customValueIds[field.key];
+        if (!id) return null;
 
-    saveCustomValues([{ id, value: form[fieldKey], name: form[fieldKey] }]);
-  };
+        return {
+          id,
+          name: field.key,
+          label: field.label,
+          value: form[field.key],
+        };
+      }).filter(Boolean) as {
+        id: string;
+        name: string;
+        label: string;
+        value: string;
+      }[];
 
-  const handleSaveAll = () => {
-    const updates = FIELD_MAP.map((f) => {
-      const id = customValueIds[f.key];
-      if (!id) return null;
-      return { id, value: form[f.key],name : f.label};
-    }).filter(Boolean) as { id: string; name: string; value: string }[];
-
-    saveCustomValues(updates);
+      if (updates.length) {
+        await putCustomValues(updates);
+        alert("Webinar details saved");
+      }
+    } catch {
+      alert("Failed to save details");
+    } finally {
+      setLoadingDetails(false);
+    }
   };
 
   return (
     <div className="webinar-grid">
+      {/* ================= DATE & TIME ================= */}
       <div className="card">
         <h3>📅 Webinar Date & Time</h3>
 
@@ -135,12 +231,21 @@ export default function Page() {
             <option value="PST">Pacific</option>
           </select>
         </div>
+
+        <button
+          className="primary-btn"
+          disabled={loadingDateTime}
+          onClick={handleSaveDateTime}
+        >
+          SAVE WEBINAR DATE & TIME
+        </button>
       </div>
 
+      {/* ================= DETAILS ================= */}
       <div className="card">
         <h3>🎥 Webinar Details</h3>
 
-        {FIELD_MAP.map((field) => (
+        {DETAILS_FIELDS.map((field) => (
           <div className="save-row" key={field.key}>
             <div className="field-float">
               <input
@@ -152,21 +257,13 @@ export default function Page() {
               />
               <label>{field.label}</label>
             </div>
-
-            <button
-              className="save-btn"
-              disabled={loading || !customValueIds[field.key]}
-              onClick={() => handleSaveSingle(field.key)}
-            >
-              SAVE
-            </button>
           </div>
         ))}
 
         <button
           className="save-all"
-          disabled={loading}
-          onClick={handleSaveAll}
+          disabled={loadingDetails}
+          onClick={handleSaveDetails}
         >
           SAVE ALL DETAILS
         </button>
