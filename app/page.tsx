@@ -68,7 +68,6 @@ export default function Page() {
   ) => {
     setLoading(true);
     try {
-      console.log(updates);
       await fetch("/api/ghl/customValues", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -92,13 +91,11 @@ export default function Page() {
 
   const handleSaveAll = () => {
     const updates = FIELD_MAP.map((f) => {
-      console.log("f =>", form[f.label], "f =>", form)
       const id = customValueIds[f.key];
       if (!id) return null;
       return { id, value: form[f.key],name : f.key};
     }).filter(Boolean) as { id: string; name: string; value: string }[];
 
-    console.log("updates ==>", updates)
     saveCustomValues(updates);
   };
 

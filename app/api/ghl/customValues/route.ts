@@ -19,7 +19,6 @@ export async function GET() {
     );
 
     const data = await res.json();
-    console.log(data);
     if (!res.ok) {
       return NextResponse.json(
         { error: data },
@@ -52,7 +51,6 @@ export async function PUT(req: Request) {
     }
 
     for (const item of updates) {
-      console.log(item);
       await fetch(
         `${BASE_URL}/locations/6Fgrrk5Lnc2jYZHBDaFN/customValues/${item.id}`,
         {
