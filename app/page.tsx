@@ -1,65 +1,179 @@
-import Image from "next/image";
+"use client";
+import { useEffect, useState } from "react";
 
-export default function Home() {
+const FIELD_MAP = [
+  { label: "City", key: "city" },
+  { label: "Zoom Link", key: "1__zoom_link" },
+  { label: "Webinar Host", key: "webinar_host" },
+  { label: "Webinar Host Email", key: "webinar_host_email" },
+  { label: "Domain Name", key: "domain_name" },
+];
+
+export default function Page() {
+  const [form, setForm] = useState<Record<string, string>>({
+    webinar_date: "2025-12-27",
+    webinar_time: "",
+    timezone: "",
+    city: "",
+    "1__zoom_link": "",
+    webinar_host: "",
+    webinar_host_email: "",
+    domain_name: "",
+  });
+
+  const [customValueIds, setCustomValueIds] = useState<Record<string, string>>(
+    {}
+  );
+
+  const [loading, setLoading] = useState(false);
+
+  /* =========================
+     GET: FETCH CUSTOM VALUES
+     ========================= */
+  useEffect(() => {
+    const fetchCustomValues = async () => {
+      const res = await fetch("/api/ghl/customValues");
+      const data = await res.json();
+
+      const idMap: Record<string, string> = {};
+      const valueMap: Record<string, string> = {};
+
+      data.customValues?.forEach((cv: any) => {
+        const cleanKey = cv.fieldKey
+          .replace("{{", "")
+          .replace("}}", "")
+          .replace("custom_values.", "")
+          .trim();
+
+        idMap[cleanKey] = cv.id;
+        valueMap[cleanKey] = cv.value || "";
+      });
+
+      setCustomValueIds(idMap);
+      setForm((prev) => ({ ...prev, ...valueMap }));
+    };
+
+    fetchCustomValues();
+  }, []);
+
+  const updateField = (key: string, value: string) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  /* =========================
+     PUT: UPDATE CUSTOM VALUES
+     ========================= */
+  const saveCustomValues = async (
+    updates: { id: string; value: string, name: string}[]
+  ) => {
+    setLoading(true);
+    try {
+      console.log(updates);
+      await fetch("/api/ghl/customValues", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ updates }),
+      });
+
+      alert("Saved successfully");
+    } catch {
+      alert("Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveSingle = (fieldKey: string) => {
+    const id = customValueIds[fieldKey];
+    if (!id) return;
+
+    saveCustomValues([{ id, value: form[fieldKey], name: form[fieldKey] }]);
+  };
+
+  const handleSaveAll = () => {
+    const updates = FIELD_MAP.map((f) => {
+      console.log("f =>", form[f.label], "f =>", form)
+      const id = customValueIds[f.key];
+      if (!id) return null;
+      return { id, value: form[f.key],name : f.key};
+    }).filter(Boolean) as { id: string; name: string; value: string }[];
+
+    console.log("updates ==>", updates)
+    saveCustomValues(updates);
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="webinar-grid">
+      <div className="card">
+        <h3>📅 Webinar Date & Time</h3>
+
+        <div className="field-normal">
+          <label>Webinar Date</label>
+          <input
+            type="date"
+            value={form.webinar_date}
+            onChange={(e) => updateField("webinar_date", e.target.value)}
+          />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <div className="field-normal">
+          <label>Webinar Time</label>
+          <input
+            type="time"
+            value={form.webinar_time}
+            onChange={(e) => updateField("webinar_time", e.target.value)}
+          />
         </div>
-      </main>
+
+        <div className="field-normal">
+          <label>Timezone</label>
+          <select
+            value={form.timezone}
+            onChange={(e) => updateField("timezone", e.target.value)}
+          >
+            <option value="">Select timezone</option>
+            <option value="EST">Eastern</option>
+            <option value="CST">Central</option>
+            <option value="MST">Mountain</option>
+            <option value="PST">Pacific</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="card">
+        <h3>🎥 Webinar Details</h3>
+
+        {FIELD_MAP.map((field) => (
+          <div className="save-row" key={field.key}>
+            <div className="field-float">
+              <input
+                placeholder=" "
+                value={form[field.key] || ""}
+                onChange={(e) =>
+                  updateField(field.key, e.target.value)
+                }
+              />
+              <label>{field.label}</label>
+            </div>
+
+            <button
+              className="save-btn"
+              disabled={loading || !customValueIds[field.key]}
+              onClick={() => handleSaveSingle(field.key)}
+            >
+              SAVE
+            </button>
+          </div>
+        ))}
+
+        <button
+          className="save-all"
+          disabled={loading}
+          onClick={handleSaveAll}
+        >
+          SAVE ALL DETAILS
+        </button>
+      </div>
     </div>
   );
 }

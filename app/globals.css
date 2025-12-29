@@ -1,26 +1,171 @@
-@import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+* {
+  box-sizing: border-box;
+  font-family: Inter, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.webinar-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  padding: 24px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* CARD */
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.06);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.card h3 {
+  font-size: 18px;
+  margin-bottom: 22px;
+  display: flex;
+  gap: 8px;
+}
+
+/* LEFT SIDE */
+.field-normal {
+  margin-bottom: 20px;
+}
+
+.field-normal label {
+  font-size: 13px;
+  color: #6b7280;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.field-normal input,
+.field-normal select {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+  background: #fff;
+}
+
+.field-normal select:focus,
+.field-normal input:focus {
+  border-color: #3b82f6;
+  outline: none;
+}
+
+/* ERROR */
+.error-text {
+  display: none;
+  font-size: 12px;
+  color: #ef4444;
+  margin-top: 6px;
+}
+
+/* TIME INPUT */
+.time-input {
+  position: relative;
+}
+
+.time-input input {
+  padding-left: 40px;
+}
+
+.time-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+/* BUTTONS */
+.primary-btn {
+  width: 100%;
+  height: 46px;
+  border-radius: 10px;
+  background: #e0f2ff;
+  color: #2563eb;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* RIGHT SIDE */
+.save-row {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.field-float {
+  position: relative;
+  flex: 1;
+}
+
+.field-float input {
+  width: 100%;
+  height: 46px;
+  padding: 16px 14px 14px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+}
+
+.field-float label {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  background: #fff;
+  padding: 0 6px;
+  font-size: 14px;
+  color: #9ca3af;
+  pointer-events: none;
+  transition: .2s ease;
+}
+
+.field-float input:focus + label,
+.field-float input:not(:placeholder-shown) + label {
+  top: -2px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.save-btn {
+  height: 46px;
+  padding: 0 18px;
+  background: #f3e8ff;
+  color: #7c3aed;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* PLATFORM */
+.platform {
+  width: 100%;
+  height: 46px;
+  background: #f3e8ff;
+  color: #7c3aed;
+  border-radius: 8px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* SAVE ALL */
+.save-all {
+  width: 100%;
+  height: 46px;
+  background: #f3e8ff;
+  color: #7c3aed;
+  border-radius: 10px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
 }
