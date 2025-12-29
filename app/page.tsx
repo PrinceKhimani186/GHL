@@ -93,7 +93,7 @@ export default function Page() {
     const updates = FIELD_MAP.map((f) => {
       const id = customValueIds[f.key];
       if (!id) return null;
-      return { id, value: form[f.key],name : f.key};
+      return { id, value: form[f.key],name : f.label};
     }).filter(Boolean) as { id: string; name: string; value: string }[];
 
     saveCustomValues(updates);
