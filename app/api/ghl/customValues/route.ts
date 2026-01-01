@@ -3,8 +3,9 @@ import { NextResponse } from "next/server";
 const BASE_URL = "https://services.leadconnectorhq.com";
 
 const headers = {
-  Authorization: `Bearer pit-1326f62f-0160-479e-8a97-d76a8057b4b7`,
+  Authorization: `${process.env.NEXT_PUBLIC_GHL_API_KEY}`,
   Version: "2021-07-28",
+  Accept: "application/json",
   "Content-Type": "application/json",
 };
 
@@ -15,7 +16,14 @@ export async function GET() {
   try {
     const res = await fetch(
       `${BASE_URL}/locations/6Fgrrk5Lnc2jYZHBDaFN/customValues`,
-      { headers }
+      {
+        method: "GET",
+        headers : {
+          Authorization: `${process.env.NEXT_PUBLIC_GHL_API_KEY}`,
+          Version: "2021-07-28",
+          Accept: "application/json",
+       },
+      }
     );
 
     const data = await res.json();
