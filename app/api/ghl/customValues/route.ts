@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 const BASE_URL = "https://services.leadconnectorhq.com";
 
 const headers = {
-  Authorization: `${process.env.NEXT_PUBLIC_GHL_API_KEY}`,
+  Authorization: `${process.env.GHL_API_KEY}`,
   Version: "2021-07-28",
   Accept: "application/json",
   "Content-Type": "application/json",
@@ -19,7 +19,7 @@ export async function GET() {
       {
         method: "GET",
         headers : {
-          Authorization: `${process.env.NEXT_PUBLIC_GHL_API_KEY}`,
+          Authorization: `${process.env.GHL_API_KEY}`,
           Version: "2021-07-28",
           Accept: "application/json",
        },
